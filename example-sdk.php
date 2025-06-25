@@ -1,13 +1,15 @@
-pbpaste > example-sdk.php <<'EOL'
 <?php
 
 // Use Composer's autoloader for all classes.
 require_once 'vendor/autoload.php';
 require_once 'example-config.php';
 
-// This securely loads the variables from your .env file.
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+// This securely loads the variables from your .env file if it exists (for local use).
+// On Railway, this does nothing, and the script uses Railway's variables.
+if (file_exists(__DIR__ . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+}
 
 // Define the classes we will be using.
 use WellnessLiving\Core\Passport\Login\Enter\EnterModel;
@@ -27,10 +29,10 @@ try
   $o_notepad = new NotepadModel($o_config);
   $o_notepad->get();
 
-  // Sign in the user using credentials from the .env file.
+  // Sign in the user using credentials from the environment.
   $o_enter = new EnterModel($o_config);
   $o_enter->cookieSet($o_notepad->cookieGet());
-  $o_enter->s_login = $_ENV['WL_LOGIN']; // Using secure variable
+  $o_enter->s__login = $_ENV['WL_LOGIN']; // Using secure variable
   $o_enter->s_notepad = $o_notepad->s_notepad;
   $o_enter->s_password = $o_notepad->hash($_ENV['WL_PASSWORD']); // Using secure variable
   $o_enter->post();
@@ -54,4 +56,3 @@ catch(Exception $e)
 }
 
 ?>
-EOL
