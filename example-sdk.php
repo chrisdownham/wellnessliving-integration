@@ -1,22 +1,13 @@
 <?php
 
-// Use Composer's autoloader for all classes.
-require_once 'vendor/autoload.php';
+require_once 'WellnessLiving/wl-autoloader.php';
 require_once 'example-config.php';
 
-// This securely loads the variables from your .env file if it exists (for local use).
-// On Railway, this does nothing, and the script uses Railway's variables.
-if (file_exists(__DIR__ . '/.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-    $dotenv->load();
-}
-
-// Define the classes we will be using.
 use WellnessLiving\Core\Passport\Login\Enter\EnterModel;
 use WellnessLiving\Core\Passport\Login\Enter\NotepadModel;
 use WellnessLiving\Wl\Report\DataModel;
-use WellnessLiving\Wl\Report\WlReportGroupSid;
-use WellnessLiving\Wl\Report\WlReportSid;
+use WellnessLiving\Wl\Report\WlReportGroupSid; // This path is corrected.
+use WellnessLiving\Wl\Report\WlReportSid;      // This path is corrected.
 use WellnessLiving\WlRegionSid;
 use WellnessLiving\Wl\WlAssertException;
 use WellnessLiving\Wl\WlUserException;
@@ -29,12 +20,12 @@ try
   $o_notepad = new NotepadModel($o_config);
   $o_notepad->get();
 
-  // Sign in the user using credentials from the environment.
+  // Sign in the user with the new, hashed password.
   $o_enter = new EnterModel($o_config);
   $o_enter->cookieSet($o_notepad->cookieGet());
-  $o_enter->s__login = $_ENV['WL_LOGIN']; // Using secure variable
+  $o_enter->s_login = 'ctdownham@googlemail.com';
   $o_enter->s_notepad = $o_notepad->s_notepad;
-  $o_enter->s_password = $o_notepad->hash($_ENV['WL_PASSWORD']); // Using secure variable
+  $o_enter->s_password = $o_notepad->hash('Rise123@'); // Your new password
   $o_enter->post();
 
   // 2. EXECUTING THE REQUEST
@@ -42,17 +33,35 @@ try
   $o_report->cookieSet($o_notepad->cookieGet());
   $o_report->id_report_group = WlReportGroupSid::DAY;
   $o_report->id_report = WlReportSid::PURCHASE_ITEM_ACCRUAL_CASH;
-  $o_report->k_business = $_ENV['WL_BUSINESS_ID']; // Using secure variable
+  $o_report->k_business = '48278';
   $o_report->filterSet([
     'dt_date' => date('Y-m-d')
   ]);
   $o_report->get();
 
-  echo "✅ API Call Successful! Report contains 0 rows.";
+  // 3. USING THE RESULT
+  $i = 0;
+  if(isset($o_report->a_data['a_row']) && count($o_report->a_data['a_row']))
+  {
+    foreach($o_report->a_data['a_row'] as $a_row)
+    {
+      $i++;
+      echo $i.'. '.$a_row['dt_date'].' '.$a_row['f_total']['m_amount'].' '.$a_row['o_user']['text_name'].' '.$a_row['s_item']."\r\n";
+    }
+  }
+  else
+  {
+    echo "✅ API Call Successful! The All Sales Report for today contains 0 rows.";
+  }
 }
-catch(Exception $e)
+catch(WlAssertException $e)
 {
-  echo '❌ Error: '.$e->getMessage();
+  echo 'Assert Exception: '.$e->getMessage();
+  return;
 }
-
+catch(WlUserException $e)
+{
+  echo 'User Exception: '.$e->getMessage()."\n";
+  return;
+}
 ?>
