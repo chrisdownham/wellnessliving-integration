@@ -1,11 +1,11 @@
 <?php
 
-use WellnessLiving\Config\WlConfigDeveloper; // Changed back to Developer
+use WellnessLiving\Config\WlConfigDeveloper;
 
 /**
  * The example config class for Staging.
  */
-class ExampleConfig extends WlConfigDeveloper // Changed back to Developer
+class ExampleConfig extends WlConfigDeveloper
 {
   /**
    * @inheritDoc
