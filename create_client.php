@@ -26,13 +26,19 @@ if (!$first || !$last || !$email) {
 $apiKey = getenv('WELLNESS_API_KEY');
 $bid    = getenv('WL_BUSINESS_ID');
 
-// 3. Fire a single POST to /businesses/{id}/clients
+// 3. Fire a single POST to /v1/businesses/{id}/clients, forcing IPv4 DNS
 $client = new Client([
     'base_uri' => 'https://api.wellnessliving.com/v1',
+    'curl'     => [
+        // Force IPv4 to avoid container DNS issues
+        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+    ],
+    'timeout'  => 10, // give up if >10s
 ]);
 
 try {
-    $resp = $client->post("/businesses/{$bid}/clients", [
+    // Note: no leading slash so Guzzle appends "businesses/…" onto "/v1"
+    $resp = $client->post("businesses/{$bid}/clients", [
         'headers' => [
             'Authorization' => "Bearer {$apiKey}",
             'Accept'        => 'application/json',
