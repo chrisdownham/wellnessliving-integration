@@ -19,18 +19,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   send_json_response(['status'=>'error','message'=>'Use POST'], 405);
 }
 
-// Pull in your five fields
-$first = $_POST['s_first_name']    ?? null;
-$last  = $_POST['s_last_name']     ?? null;
-$email = $_POST['s_email']         ?? null;
-$phone = $_POST['s_phone']         ?? null;
-$home  = $_POST['s_home_location'] ?? null;
+// Pull in the four lead fields
+$first = $_POST['s_first_name'] ?? null;
+$last  = $_POST['s_last_name']  ?? null;
+$email = $_POST['s_email']      ?? null;
+$phone = $_POST['s_phone']      ?? null;
 
-// Validate all five
-if (! $first || ! $last || ! $email || ! $phone || ! $home) {
+// Validate required four
+if (! $first || ! $last || ! $email || ! $phone) {
   send_json_response([
     'status'=>'error',
-    'message'=>'Missing one of: s_first_name, s_last_name, s_email, s_phone, s_home_location'
+    'message'=>'Missing required fields: s_first_name, s_last_name, s_email, s_phone'
   ], 422);
 }
 
@@ -47,35 +46,32 @@ try {
   $enter->s_password = $notepad->hash($_ENV['WL_PASSWORD']);
   $enter->post();
 
-  // 2) Load the “new client” fields
+  // 2) Load the “new-client” fields
   $lead = new LeadModel($cfg);
   $lead->cookieSet($notepad->cookieGet());
   $lead->k_business = $_ENV['WL_BUSINESS_ID'];
   $lead->get();
 
-  // 3) Map each required value by its id_field_general
+  // 3) Build payload for exactly those four
   $payload = [];
   foreach ($lead->a_field_list as $f) {
     switch ($f['id_field_general']) {
       case 2:  // First name
-        $payload[ $f['k_field'] ] = $first;
+        $payload[$f['k_field']] = $first;
         break;
       case 1:  // Last name
-        $payload[ $f['k_field'] ] = $last;
+        $payload[$f['k_field']] = $last;
         break;
       case 3:  // Email/Username
-        $payload[ $f['k_field'] ] = $email;
+        $payload[$f['k_field']] = $email;
         break;
       case 4:  // Cell phone
-        $payload[ $f['k_field'] ] = $phone;
-        break;
-      case 5:  // Home location
-        $payload[ $f['k_field'] ] = $home;
+        $payload[$f['k_field']] = $phone;
         break;
     }
   }
 
-  // 4) Create the client
+  // 4) Create the lead (client)
   $lead->a_field_data = $payload;
   $lead->post();
 
@@ -86,9 +82,8 @@ try {
   ], 201);
 
 } catch (\Exception $e) {
-  // 6) Forward any API error
   send_json_response([
-    'status'=>'error',
-    'message'=>'API error: '.$e->getMessage()
+    'status'  => 'error',
+    'message' => 'API error: '.$e->getMessage()
   ], 500);
 }
