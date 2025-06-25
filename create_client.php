@@ -1,4 +1,3 @@
-pbpaste > create_client.php <<'EOL'
 <?php
 
 // Use Composer's autoloader for all classes.
@@ -81,4 +80,3 @@ try {
     ]);
 }
 ?>
-EOL
