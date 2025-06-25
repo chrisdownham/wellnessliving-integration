@@ -1,1 +1,1 @@
-<?php echo 'Application is running.'; ?>
+<?php // Triggering deployment with build and start commands
