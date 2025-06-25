@@ -6,8 +6,7 @@
     "ext-bcmath": "*",
     "ext-curl": "*",
     "ext-json": "*",
-    "php": ">=5.5",
-    "heroku/heroku-buildpack-php": "^268.0"
+    "php": ">=5.5"
   },
   "autoload": {
     "WellnessLiving": "\\"
