@@ -1,8 +1,22 @@
 <?php
 
-// Use Composer's autoloader for all classes.
+// Use Composer's autoloader for all classes. This MUST be the first line.
 require_once 'vendor/autoload.php';
-require_once 'example-config.php';
+
+// This securely loads variables from the .env file if it exists (for local use).
+if (file_exists(__DIR__ . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+}
+
+/**
+ * The custom configuration class, now defined directly inside our script.
+ */
+class MyConfig extends \WellnessLiving\Config\WlConfigDeveloper
+{
+  const AUTHORIZE_CODE = 'eBYCKvZ90FdqbLoRTb44tWOARpuZPLBaFphaSUZMOTh2';
+  const AUTHORIZE_ID = 'raa-EClh0AuHE8XbHWEO';
+}
 
 // Define the classes we will be using.
 use WellnessLiving\Core\Passport\Login\Enter\EnterModel;
@@ -13,15 +27,8 @@ use WellnessLiving\WlRegionSid;
 try {
     echo "Attempting to create a test client...\n";
 
-    // This securely loads the variables from your .env file if it exists (for local use).
-    // On Railway, it will use Railway's own environment variables.
-    if (file_exists(__DIR__ . '/.env')) {
-        $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-        $dotenv->load();
-    }
-
     // Authenticate with the API using the correct method.
-    $o_config = ExampleConfig::create(WlRegionSid::US_EAST_1);
+    $o_config = MyConfig::create(WlRegionSid::US_EAST_1);
     
     $o_notepad = new NotepadModel($o_config);
     $o_notepad->get();
@@ -36,9 +43,9 @@ try {
     // Use the EditModel to create the new client profile.
     $o_profile = new EditModel($o_config);
     $a_change = [
-        's_first_name' => ['s_value' => 'Railway'],
-        's_last_name'  => ['s_value' => 'Test Client'],
-        's_email'      => ['s_value' => 'railway-test-' . time() . '@example.com'] // Unique email
+        's_first_name' => ['s_value' => 'RailwayFinal'],
+        's_last_name'  => ['s_value' => 'Test'],
+        's_email'      => ['s_value' => 'railway-final-test-' . time() . '@example.com']
     ];
     
     $o_profile->a_change = $a_change;
