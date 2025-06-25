@@ -19,7 +19,7 @@ use WellnessLiving\WlRegionSid;
 \$enter->s_password = \$notepad->hash(\$_ENV['WL_PASSWORD']);
 \$enter->post();
 
-// 2. Fetch the list of “new‐client” fields
+// 2. Fetch the list of “new-client” fields
 \$lead = new LeadModel(\$cfg);
 \$lead->cookieSet(\$notepad->cookieGet());
 \$lead->k_business = \$_ENV['WL_BUSINESS_ID'];
