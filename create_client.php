@@ -20,16 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Pull in your form fields
-$first = $_POST['s_first_name']   ?? null;
-$last  = $_POST['s_last_name']    ?? null;
-$email = $_POST['s_email']        ?? null;
-$phone = $_POST['s_phone']        ?? null;
-$home  = $_POST['s_home_location']?? null;
+$first = $_POST['s_first_name']    ?? null;
+$last  = $_POST['s_last_name']     ?? null;
+$email = $_POST['s_email']         ?? null;
+$phone = $_POST['s_phone']         ?? null;
+$home  = $_POST['s_home_location'] ?? null;
 
+// Validate
 if (! $first || ! $last || ! $email || ! $phone || ! $home) {
   send_json_response([
-    'status'=>'error',
-    'message'=>'Missing one of required fields: s_first_name, s_last_name, s_email, s_phone, s_home_location'
+    'status'  => 'error',
+    'message' => 'Missing required fields: s_first_name, s_last_name, s_email, s_phone, s_home_location'
   ], 422);
 }
 
@@ -39,14 +40,14 @@ try {
   $notepad = new NotepadModel($cfg);
   $notepad->get();
 
-  $enter   = new EnterModel($cfg);
+  $enter = new EnterModel($cfg);
   $enter->cookieSet($notepad->cookieGet());
   $enter->s_login    = $_ENV['WL_LOGIN'];
   $enter->s_notepad  = $notepad->s_notepad;
   $enter->s_password = $notepad->hash($_ENV['WL_PASSWORD']);
   $enter->post();
 
-  // 2) Prepare the “change” payload exactly per SDK
+  // 2) Prepare the “change” payload
   $changes = [
     's_first_name'    => ['s_value' => $first],
     's_last_name'     => ['s_value' => $last],
@@ -63,14 +64,16 @@ try {
 
   $result = $profile->post();
 
+  // 4) Success response
   send_json_response([
     'status'         => 'success',
     'new_client_uid' => $result['uid'] ?? null
   ], 201);
 
 } catch (\Exception $e) {
+  // 5) Error response
   send_json_response([
-    'status'=>'error',
-    'message'=>'API error: '.$e->getMessage()
+    'status'  => 'error',
+    'message' => 'API error: ' . $e->getMessage()
   ], 500);
 }
