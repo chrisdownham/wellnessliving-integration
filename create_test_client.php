@@ -1,9 +1,7 @@
 <?php
 
-// Use Composer's autoloader first.
+// This MUST be the first line to load all necessary SDK classes.
 require_once 'vendor/autoload.php';
-// MANUALLY include the WellnessLiving SDK's autoloader as a fallback.
-require_once 'WellnessLiving/wl-autoloader.php';
 
 // This securely loads variables from the .env file if it exists (for local testing).
 if (file_exists(__DIR__ . '/.env')) {
@@ -15,7 +13,7 @@ if (file_exists(__DIR__ . '/.env')) {
 use WellnessLiving\Config\WlConfigDeveloper;
 use WellnessLiving\Core\Passport\Login\Enter\EnterModel;
 use WellnessLiving\Core\Passport\Login\Enter\NotepadModel;
-use WellnessLiving\Wl\Profile\Edit\EditModel;
+use WellnessLiving\Wl\Business\BusinessModel; // The tool for getting business details
 use WellnessLiving\WlRegionSid;
 
 class MyConfig extends WlConfigDeveloper
@@ -25,7 +23,7 @@ class MyConfig extends WlConfigDeveloper
 }
 
 try {
-    echo "Attempting to create a test client...\n";
+    echo "Attempting to fetch business details...\n";
 
     $o_config = MyConfig::create(WlRegionSid::US_EAST_1);
     
@@ -39,20 +37,16 @@ try {
     $o_enter->s_notepad = $o_notepad->s_notepad;
     $o_enter->post();
 
-    $o_profile = new EditModel($o_config);
-    $a_change = [
-        's_first_name' => ['s_value' => 'FinalRailwayClient'],
-        's_last_name'  => ['s_value' => 'Test'],
-        's_email'      => ['s_value' => 'final-railway-client-' . time() . '@example.com']
-    ];
-    
-    $o_profile->a_change = $a_change;
-    $o_profile->k_business = $_ENV['WL_BUSINESS_ID'];
+    // Use the BusinessModel to get details.
+    $o_business = new BusinessModel($o_config);
+    $o_business->k_business = $_ENV['WL_BUSINESS_ID'];
+    $o_business->get(); // This makes the API call.
 
-    $a_result = $o_profile->post();
+    // Get the data from the successful call.
+    $a_result = $o_business->dataGet();
 
-    echo "✅ Success! Client created successfully in WellnessLiving.\n";
-    echo "New Client UID: " . ($a_result['uid'] ?? 'N/A') . "\n";
+    echo "✅ Success! API call was successful.\n";
+    echo "Business Name: " . ($a_result['s_title'] ?? 'N/A') . "\n";
 
 } catch (Exception $e) {
     echo "❌ Error: An API error occurred: " . $e->getMessage() . "\n";
