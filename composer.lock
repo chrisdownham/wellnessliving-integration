@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "59f1686d32a74039dff1f4540e015885",
+    "content-hash": "313163d20fc42cc09904206abc446d19",
     "packages": [
         {
             "name": "graham-campbell/result-type",
@@ -1065,16 +1065,16 @@
         },
         {
             "name": "wellnessliving/wl-sdk",
-            "version": "v1.1.4",
+            "version": "v2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wellnessliving/wl-sdk.git",
-                "reference": "1764bdb6d9bec699d420b8530aeb160b1f17ce16"
+                "reference": "361cccdf9a0e3dfed7f97c869b2388c389cb2457"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wellnessliving/wl-sdk/zipball/1764bdb6d9bec699d420b8530aeb160b1f17ce16",
-                "reference": "1764bdb6d9bec699d420b8530aeb160b1f17ce16",
+                "url": "https://api.github.com/repos/wellnessliving/wl-sdk/zipball/361cccdf9a0e3dfed7f97c869b2388c389cb2457",
+                "reference": "361cccdf9a0e3dfed7f97c869b2388c389cb2457",
                 "shasum": ""
             },
             "require": {
@@ -1092,10 +1092,10 @@
             ],
             "description": "Wellenessliving API SDK",
             "support": {
-                "source": "https://github.com/wellnessliving/wl-sdk/tree/v1.1.4",
+                "source": "https://github.com/wellnessliving/wl-sdk/tree/v2.1.0",
                 "issues": "https://github.com/wellnessliving/wl-sdk/issues"
             },
-            "time": "2024-09-25T13:28:47+00:00"
+            "time": "2025-01-23T21:00:24+00:00"
         }
     ],
     "packages-dev": [],
