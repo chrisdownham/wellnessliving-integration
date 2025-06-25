@@ -1,66 +1,66 @@
 <?php
-require_once 'vendor/autoload.php';
-require_once 'example-config.php';
+require 'vendor/autoload.php';
 
-if (file_exists(__DIR__ . '/.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-    $dotenv->load();
-}
+use GuzzleHttp\Client;
 
-use WellnessLiving\Core\Passport\Login\Enter\EnterModel;
-use WellnessLiving\Core\Passport\Login\Enter\NotepadModel;
-use WellnessLiving\Wl\Profile\Edit\EditModel;
-use WellnessLiving\WlRegionSid;
+// 1. Read incoming data (form-encoded or raw JSON)
+$contentType = \$_SERVER['CONTENT_TYPE'] ?? '';
+\$body = stripos(\$contentType, 'application/json') !== false
+    ? json_decode(file_get_contents('php://input'), true)
+    : \$_POST;
 
-function send_json_response($data) {
-    header('Content-Type: application/json');
-    echo json_encode($data);
+\$first = \$body['s_first_name'] ?? null;
+\$last  = \$body['s_last_name']  ?? null;
+\$email = \$body['s_email']      ?? null;
+
+if (!\$first || !\$last || !\$email) {
+    header('Content-Type: application/json', true, 422);
+    echo json_encode([
+      'status'  => 'error',
+      'message' => 'Missing s_first_name, s_last_name or s_email.'
+    ]);
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    send_json_response(['status' => 'error', 'message' => 'This endpoint only accepts POST requests.']);
-}
+// 2. Pull in your env vars
+\$apiKey = getenv('WELLNESS_API_KEY');
+\$bid    = getenv('WL_BUSINESS_ID');
 
-$s_first_name = $_POST['s_first_name'] ?? null;
-$s_last_name  = $_POST['s_last_name']  ?? null;
-$s_email      = $_POST['s_email']      ?? null;
-
-if (!$s_first_name || !$s_last_name || !$s_email) {
-    send_json_response(['status' => 'error', 'message' => 'Missing required fields: s_first_name, s_last_name, s_email.']);
-}
+// 3. Fire a single POST to /businesses/{id}/clients
+\$client = new Client([
+    'base_uri' => 'https://api.wellnessliving.com/v1',
+]);
 
 try {
-    $o_config  = ExampleConfig::create(WlRegionSid::US_EAST_1);
-    $o_notepad = new NotepadModel($o_config);
-    $o_notepad->get();
-
-    $o_enter           = new EnterModel($o_config);
-    $o_enter->cookieSet($o_notepad->cookieGet());
-    $o_enter->s_login    = $_ENV['WL_LOGIN'];
-    $o_enter->s_notepad  = $o_notepad->s_notepad;
-    $o_enter->s_password = $o_notepad->hash($_ENV['WL_PASSWORD']);
-    $o_enter->post();
-
-    $o_profile         = new EditModel($o_config);
-    $o_profile->a_change = [
-        's_first_name' => ['s_value' => $s_first_name],
-        's_last_name'  => ['s_value' => $s_last_name],
-        's_email'      => ['s_value' => $s_email]
-    ];
-    $o_profile->k_business = $_ENV['WL_BUSINESS_ID'];
-
-    $a_result = $o_profile->post();
-
-    send_json_response([
-        'status'         => 'success',
-        'message'        => 'Client created successfully in WellnessLiving.',
-        'new_client_uid' => $a_result['uid'] ?? null
+    \$resp = \$client->post("/businesses/{\$bid}/clients", [
+        'headers' => [
+            'Authorization' => "Bearer {\$apiKey}",
+            'Accept'        => 'application/json',
+            'Content-Type'  => 'application/json',
+        ],
+        'json' => [
+            'firstName' => \$first,
+            'lastName'  => \$last,
+            'email'     => \$email
+        ],
     ]);
 
-} catch (Exception $e) {
-    send_json_response([
-        'status'  => 'error',
-        'message' => 'An API error occurred: ' . $e->getMessage()
+    \$data = json_decode(\$resp->getBody(), true);
+    header('Content-Type: application/json', true, 201);
+    echo json_encode([
+      'status' => 'success',
+      'data'   => \$data
     ]);
+
+} catch (\\GuzzleHttp\\Exception\\RequestException \$e) {
+    \$status = \$e->hasResponse()
+        ? \$e->getResponse()->getStatusCode()
+        : 500;
+    \$body   = \$e->hasResponse()
+        ? (string)\$e->getResponse()->getBody()
+        : \$e->getMessage();
+
+    header('Content-Type: application/json', true, \$status);
+    echo \$body;
+    exit;
 }
